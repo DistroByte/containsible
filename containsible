@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+version_check () {
+	#TODO: implement image version checking
+	echo "Performing version check..."
+	echo "Up to date!"
+}
+
+run_containsible () {
+	version_check
+	docker run -it --hostname $1 containsible:latest
+}
+
+if [ $# -eq 0 ]; then
+	hostname=""
+	if [ -s ~/.containsible ]; then
+		hostname=$(cat ~/.containsible)
+	else
+		echo "No environment specified. Please run 'containsble run [environment]'"
+		exit 0
+	fi
+	run_containsible $hostname
+elif [ $1 = "run" ]; then
+	[ -z $2 ] && echo "No environment specified. Please run 'containsible run [environment]'" && exit 0
+	echo $2 > ~/.containsible
+	run_containsible $2
+fi
