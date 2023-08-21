@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-08-21
+### Changed
+- #10: Improve startup script with update commands, local flag, and more
+
 ## [0.2.0] - 2023-08-20
 ### Added
 - #4: Script to start container with customisable hostname

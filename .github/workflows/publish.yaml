@@ -1,14 +1,15 @@
-name: Build & Publish Container
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+name: Build & Push Container
 
 on:
   push:
     branches:
-      - "master"
-  
+      - 'master'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'master'
+
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
@@ -17,31 +18,34 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v3
-        
-      - name: Log in to the Container registry
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Docker
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            name/app
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=ref,event=tag
-          flavor: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          flavour: |
             latest=true
 
       - name: Build and push
         uses: docker/build-push-action@v4
-        with: 
+        with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
