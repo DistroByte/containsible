@@ -1,28 +1,143 @@
 #!/bin/bash
 set -e
 
-version_check () {
-	#TODO: implement image version checking
-	echo "Performing version check..."
-	echo "Up to date!"
+use_local_image=false
+
+# Run the containsible Docker container
+# Arguments: $1 - Environment name
+run_containsible() {
+    local environment="$1"
+
+    if $use_local_image; then
+        echo "Skipping version check for local image."
+        docker run -it --hostname "$environment" containsible
+    else
+        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible:latest
+    fi
 }
 
-run_containsible () {
-	version_check
-	docker run -it --hostname $1 containsible:latest
+# Prune old Docker images
+prune_images() {
+    echo "Pruning old Docker images..."
+    docker image prune -f
+    echo "Old images pruned successfully."
 }
 
-if [ $# -eq 0 ]; then
-	hostname=""
-	if [ -s ~/.containsible ]; then
-		hostname=$(cat ~/.containsible)
-	else
-		echo "No environment specified. Please run 'containsble run [environment]'"
-		exit 0
-	fi
-	run_containsible $hostname
-elif [ $1 = "run" ]; then
-	[ -z $2 ] && echo "No environment specified. Please run 'containsible run [environment]'" && exit 0
-	echo $2 > ~/.containsible
-	run_containsible $2
-fi
+# Update the container
+update_container() {
+    local environment="$1"
+
+    echo "Updating the container for $environment..."
+    if $use_local_image; then
+        echo "Skipping update for local image."
+    else
+        docker pull ghcr.io/distrobyte/containsible:latest >/dev/null 2>&1
+        echo "Container updated successfully."
+    fi
+}
+
+# Display error for invalid usage
+error_invalid_usage() {
+    echo "Usage: $(basename $0) run [--local|-l] <environment>"
+    exit 1
+}
+
+# Handle the run subcommand
+handle_run_subcommand() {
+    shift
+
+    # Parse run options
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -l|--local)
+                use_local_image=true
+                shift
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    # Check if environment is specified
+    if [ -z "$1" ]; then
+        [ -s ~/.containsible ] && environment=$(cat ~/.containsible) || error_invalid_usage
+    else
+        echo "$1" > ~/.containsible
+        environment="$1"
+        shift
+    fi
+
+    # Ensure no additional arguments after environment name
+    if [ -n "$1" ]; then
+        error_invalid_usage
+    fi
+
+    if ! $use_local_image; then
+        echo "Pulling the latest remote image..."
+        docker pull ghcr.io/distrobyte/containsible:latest >/dev/null 2>&1
+        echo "Latest remote image pulled successfully."
+    fi
+
+    # Run the containsible Docker container with the specified environment
+    run_containsible "$environment"
+}
+
+# Handle the update subcommand
+handle_update_subcommand() {
+    shift
+
+    # Parse update options
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -l|--local)
+                use_local_image=true
+                shift
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    # Check if environment is specified
+    if [ -z "$1" ]; then
+        [ -s ~/.containsible ] && environment=$(cat ~/.containsible) || error_invalid_usage
+    else
+        echo "$1" > ~/.containsible
+        environment="$1"
+        shift
+    fi
+
+    # Ensure no additional arguments after environment name
+    if [ -n "$1" ]; then
+        error_invalid_usage
+    fi
+
+    # Update the container for the specified environment
+    update_container "$environment"
+}
+
+# Main script logic
+main() {
+    case "$1" in
+        run)
+            handle_run_subcommand "$@"
+            ;;
+        prune)
+            prune_images
+            ;;
+        update)
+            handle_update_subcommand "$@"
+            ;;
+        "")
+            [ -s ~/.containsible ] && ./containsible run $(cat ~/.containsible) || error_invalid_usage
+            ;;
+        *)
+            error_invalid_usage
+            ;;
+    esac
+}
+
+# Call the main function with command line arguments
+main "$@"
