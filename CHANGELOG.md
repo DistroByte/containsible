@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- #15: Reduce size of image
+
 ## [0.5.0] - 2023-08-21
 ### Added
 - #13: Add ansible.cfg file
