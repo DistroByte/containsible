@@ -1,16 +1,23 @@
 # containsible
 
-A standard environment for running ansible. 
+A standard environment for running ansible.
 
 Includes playbooks and roles, with customisable host files for a
 single entrypoint and repeatable environments to allow multiple people interact
 across various machines.
 
+## Usage
+
+```bash
+$ ./containsible run <environment>
+```
+
 ## Installation
 
 Download the `bootstrap.sh` file
+
 ```bash
 # curl
 ```
-#TODO: Add script here
 
+#TODO: Add script here
