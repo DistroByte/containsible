@@ -2,15 +2,16 @@
 set -e
 
 use_local_image=false
+verbose=false
 
 # Run the containsible Docker container
 # Arguments: $1 - Environment name
 run_containsible() {
     local environment="$1"
 
-    if $use_local_image; then
+    if [ "$use_local_image" = true ]; then
         echo "Skipping version check for local image."
-        docker run -it --hostname "$environment" containsible
+        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible:latest
     else
         docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible:latest
     fi
@@ -38,7 +39,7 @@ update_container() {
 
 # Display error for invalid usage
 error_invalid_usage() {
-    echo "Usage: $(basename $0) run [--local|-l] <environment>"
+    echo "Usage: $(basename $0) run [--local|-l, --verbose|-v] <environment>"
     exit 1
 }
 
@@ -51,6 +52,10 @@ handle_run_subcommand() {
         case "$1" in
             -l|--local)
                 use_local_image=true
+                shift
+                ;;
+            -v|--verbose)
+                verbose=true
                 shift
                 ;;
             *)
@@ -73,9 +78,13 @@ handle_run_subcommand() {
         error_invalid_usage
     fi
 
-    if ! $use_local_image; then
+    if [ "$use_local_image" = false ]; then
         echo "Pulling the latest remote image..."
-        docker pull ghcr.io/distrobyte/containsible:latest >/dev/null 2>&1
+        if [ "$verbose" = true ]; then
+            docker pull ghcr.io/distrobyte/containsible:latest
+        else
+            docker pull ghcr.io/distrobyte/containsible:latest >/dev/null 2>&1
+        fi
         echo "Latest remote image pulled successfully."
     fi
 
@@ -92,6 +101,10 @@ handle_update_subcommand() {
         case "$1" in
             -l|--local)
                 use_local_image=true
+                shift
+                ;;
+            -v|--verbose)
+                verbose=true
                 shift
                 ;;
             *)
@@ -123,9 +136,6 @@ main() {
     case "$1" in
         run)
             handle_run_subcommand "$@"
-            ;;
-        prune)
-            prune_images
             ;;
         update)
             handle_update_subcommand "$@"
