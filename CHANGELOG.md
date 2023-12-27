@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.7.0] - 2023-12-37
+## [0.8.0] - 2023-12-27
+### Added
+
+- User's ssh keys are now added to the container
+
+## [0.7.0] - 2023-12-27
 ### Added
 
 - #19: Ability for inventory plugins to be added
