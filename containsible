@@ -11,9 +11,26 @@ run_containsible() {
 
     if [ "$use_local_image" = true ]; then
         echo "Skipping version check for local image."
-        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible-$environment:latest
+
+        cp -r ~/.ssh ~/.containsible.d/ssh >/dev/null 2>&1 || sudo chown -R $(whoami):$(whoami) ~/.containsible.d/
+
+        docker run -it --hostname "$environment" \
+            -e "ANSIBLE_REMOTE_USER=$(whoami)" \
+            --volume ~/.containsible.d/ssh:/root/.ssh \
+            --volume ~/.containsible.d/.bash_history:/root/.bash_history \
+            $environment
+
+        sudo chown -R $(whoami):$(whoami) ~/.containsible.d/
     else
-        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible-$environment:latest
+        cp -r ~/.ssh ~/.containsible.d/ssh >/dev/null 2>&1 || sudo chown -R $(whoami):$(whoami) ~/.containsible.d/ssh
+
+        docker run -it --hostname "$environment" \
+            -e "ANSIBLE_REMOTE_USER=$(whoami)" \
+            --volume ~/.containsible.d/ssh:/root/.ssh \
+            --volume ~/.containsible.d/.bash_history:/root/.bash_history \
+            ghcr.io/distrobyte/containsible-$environment:latest
+
+        sudo chown -R $(whoami):$(whoami) ~/.containsible.d/ssh
     fi
 }
 
@@ -66,9 +83,10 @@ handle_run_subcommand() {
 
     # Check if environment is specified
     if [ -z "$1" ]; then
-        [ -s ~/.containsible ] && environment=$(cat ~/.containsible) || error_invalid_usage
+        [ -s ~/.containsible.d/env ] && environment=$(cat ~/.containsible.d/env) || error_invalid_usage
     else
-        echo "$1" > ~/.containsible
+        mkdir -p ~/.containsible.d
+        echo "$1" > ~/.containsible.d/env
         environment="$1"
         shift
     fi
@@ -115,9 +133,10 @@ handle_update_subcommand() {
 
     # Check if environment is specified
     if [ -z "$1" ]; then
-        [ -s ~/.containsible ] && environment=$(cat ~/.containsible) || error_invalid_usage
+        [ -s ~/.containsible.d/env ] && environment=$(cat ~/.containsible.d/env) || error_invalid_usage
     else
-        echo "$1" > ~/.containsible
+        mkdir -p ~/.containsible.d
+        echo "$1" > ~/.containsible.d/env
         environment="$1"
         shift
     fi
@@ -141,7 +160,7 @@ main() {
             handle_update_subcommand "$@"
             ;;
         "")
-            [ -s ~/.containsible ] && ./containsible run $(cat ~/.containsible) || error_invalid_usage
+            [ -s ~/.containsible.d/env ] && ./containsible run $(cat ~/.containsible.d/env) || error_invalid_usage
             ;;
         *)
             error_invalid_usage

@@ -4,10 +4,6 @@ export PATH="/root/.local/bin:$PATH"
 export EDITOR="vim"
 
 # motd
-echo <<EOF
-$HOSTNAME is ready to use!
+echo "containsible-$HOSTNAME is ready to use!"
 
-EOF
-
-force_color_prompt=yes
-color_prompt=yes
+chown -R root:root /root/.ssh
