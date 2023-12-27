@@ -2,12 +2,11 @@ FROM debian:bookworm-slim AS base
 
 WORKDIR /root
 
-COPY build-files build-files
-RUN cat build-files/.bashrc >> /root/.bashrc && cat build-files/ansible.cfg >> /root/ansible.cfg
-
 RUN apt update && apt install --no-install-recommends -y gnupg \
 	dnsutils \
 	net-tools \
+	nmap \
+	openssh-client \
 	python3 \
 	python-is-python3 \
 	python3-pip \
@@ -18,5 +17,10 @@ RUN apt update && apt install --no-install-recommends -y gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN pipx install --include-deps ansible
+
+COPY build-files/ build-files/
+RUN cat build-files/.bashrc >> /root/.bashrc
+RUN cat build-files/ansible.cfg >> /root/ansible.cfg
+RUN rm -rf build-files
 
 CMD ["/bin/bash"]
