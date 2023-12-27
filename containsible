@@ -11,9 +11,9 @@ run_containsible() {
 
     if [ "$use_local_image" = true ]; then
         echo "Skipping version check for local image."
-        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible:latest
+        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible-$environment:latest
     else
-        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible:latest
+        docker run -it --hostname "$environment" ghcr.io/distrobyte/containsible-$environment:latest
     fi
 }
 
@@ -32,7 +32,7 @@ update_container() {
     if $use_local_image; then
         echo "Skipping update for local image."
     else
-        docker pull ghcr.io/distrobyte/containsible:latest >/dev/null 2>&1
+        docker pull ghcr.io/distrobyte/containsible-$environment:latest >/dev/null 2>&1
         echo "Container updated successfully."
     fi
 }
@@ -81,9 +81,9 @@ handle_run_subcommand() {
     if [ "$use_local_image" = false ]; then
         echo "Pulling the latest remote image..."
         if [ "$verbose" = true ]; then
-            docker pull ghcr.io/distrobyte/containsible:latest
+            docker pull ghcr.io/distrobyte/containsible-$environment:latest
         else
-            docker pull ghcr.io/distrobyte/containsible:latest >/dev/null 2>&1
+            docker pull ghcr.io/distrobyte/containsible-$environment:latest >/dev/null 2>&1
         fi
         echo "Latest remote image pulled successfully."
     fi
