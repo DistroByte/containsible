@@ -11,6 +11,7 @@ RUN apt update && apt install --no-install-recommends -y gnupg \
 	python-is-python3 \
 	python3-pip \
 	pipx \
+	openssh-client \
 	vim \
 	&& apt autoremove -y \
 	&& apt clean \
